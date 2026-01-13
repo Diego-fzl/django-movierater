@@ -1,3 +1,4 @@
+import movieraterAPP.views
 """
 URL configuration for awesomemovierater project.
 
@@ -16,7 +17,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+import movieraterAPP.views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("",movieraterAPP.views.overview, name='overview')
 ]
