@@ -13,4 +13,4 @@ class Movie(models.Model):
     )
 
     def __str__(self):
-        return self.title
+        return self.title       #everytime the object is converted to str show:

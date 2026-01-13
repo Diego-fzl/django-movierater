@@ -21,5 +21,6 @@ import movieraterAPP.views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("",movieraterAPP.views.overview, name='overview')
+    path("",movieraterAPP.views.overview, name='overview'),
+    path("upload/",movieraterAPP.views.upload, name='upload')
 ]

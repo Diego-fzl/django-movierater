@@ -1,10 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<p>Hello Overview</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+
+{%block content%}
+<p>Das ist die Overview seite</p>
+<p>Hier sollen dann alle deine Movieratings angezeigt werden!</p>
+
+<ul>
+    {% for movie in movies %}
+        <li>Movie: {{ movie }}     Rating: {{movie.rating}}</li>
+    {% endfor %}
+    <p>{{count}}</p>
+</ul>
+{% endblock %}

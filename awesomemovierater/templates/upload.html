@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}nUpload a Movie and give it a Rating{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <!-- Hier kommt SearchBar rein-->
+    <!-- Sucht Movie aus und gibt Eckdaten wieder-->
+
+    <p><input type="submit" value="Upload"></p>
+    <!-- Rating geben 1-5 / 1-10 -->
+    <!-- Notizen geben -->
+</form>
+{% endblock %}
