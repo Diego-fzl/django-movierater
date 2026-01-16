@@ -1,15 +1,118 @@
 {% extends "base.html" %}
-{% block title %}nUpload a Movie and give it a Rating{% endblock %}
+{% block title %}Film hinzufügen - MovieRater{% endblock %}
 
 {% block content %}
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <!-- Hier kommt SearchBar rein-->
-    <!-- Sucht Movie aus und gibt Eckdaten wieder-->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Neuen Film bewerten</h4>
+            </div>
+            <div class="card-body">
+                <!-- Suchbereich für TMDB -->
+                <div class="mb-4">
+                    <label for="tmdb-search-input" class="form-label">Film in TMDB Datenbank suchen</label>
+                    <div class="input-group">
+                        <input type="text" id="tmdb-search-input" class="form-control" placeholder="Titel eingeben...">
+                        <button class="btn btn-outline-primary" type="button" onclick="searchMovie()">Suchen</button>
+                    </div>
+                    <div id="search-results" class="list-group mt-2" style="display: none; max-height: 250px; overflow-y: auto; position: absolute; z-index: 1000; width: 90%;">
+                        <!-- Ergebnisse landen hier -->
+                    </div>
+                </div>
 
-    <p><input type="submit" value="Upload"></p>
-    <!-- Rating geben 1-5 / 1-10 -->
-    <!-- Notizen geben -->
-</form>
+                <!--  posterVorschau-->
+                <div id="poster-preview" class="mb-3 text-center" style="display: none;">
+                        <h6>Poster-Vorschau:</h6>
+                        <img id="preview-img" src="" alt="Poster" style="max-height: 200px; border-radius: 8px;">
+                    </div>
+                <hr>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Feld versteckt für externe bild URL-->
+                    <input type="hidden" name="tmdb_poster_url" id="tmdb_poster_url">
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Speichern</button>
+                        <a href="{% url 'overview' %}" class="btn btn-outline-secondary">Abbrechen</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function searchMovie() {
+    const query = document.getElementById('tmdb-search-input').value;
+    const resultsDiv = document.getElementById('search-results');
+
+    if (query.length < 2) return;
+
+    try {
+        const response = await fetch(`/searchMovie/?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        resultsDiv.innerHTML = '';
+        resultsDiv.style.display = 'block';
+
+        if (data.results && data.results.length > 0) {
+            data.results.forEach(movie => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+                item.innerText = `${movie.title} (${year})`;
+
+                item.onclick = () => {
+                    // alle Attribute von API anzeigen lassen
+                    console.log("Ausgewählter Film:", movie);
+
+                    // Felder befüllen (Django nutzt id_fieldname als Standard)
+                    if (document.getElementById('id_title')) document.getElementById('id_title').value = movie.title;
+                    if (document.getElementById('id_description')) document.getElementById('id_description').value = movie.overview;
+
+                    if (document.getElementById('id_release_date')) document.getElementById('id_release_date').value = movie.release_date;
+                    if (movie.poster_path) {
+                        const fullImageUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                        document.getElementById('tmdb_poster_url').value = fullImageUrl;
+                        document.getElementById('preview-img').src = fullImageUrl;
+                        document.getElementById('poster-preview').style.display = 'block';
+                    }
+                    resultsDiv.style.display = 'none';
+                    document.getElementById('tmdb-search-input').value = movie.title;
+                };
+                resultsDiv.appendChild(item);
+            });
+        } else {
+            resultsDiv.innerHTML = '<div class="list-group-item">Keine Ergebnisse gefunden</div>';
+        }
+    } catch (error) {
+        console.error('Fehler bei der Suche:', error);
+    }
+}
+
+// Schließen der Suchergebnisse beim Klicken außerhalb
+document.addEventListener('click', function(event) {
+    const resultsDiv = document.getElementById('search-results');
+    if (resultsDiv && !event.target.closest('.input-group') && !event.target.closest('#search-results')) {
+        resultsDiv.style.display = 'none';
+    }
+});
+</script>
 {% endblock %}

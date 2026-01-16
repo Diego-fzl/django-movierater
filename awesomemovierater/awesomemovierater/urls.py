@@ -1,4 +1,7 @@
 import movieraterAPP.views
+from django.conf import settings
+from django.conf.urls.static import static
+
 """
 URL configuration for awesomemovierater project.
 
@@ -22,5 +25,9 @@ import movieraterAPP.views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("",movieraterAPP.views.overview, name='overview'),
-    path("upload/",movieraterAPP.views.upload, name='upload')
+    path("upload/",movieraterAPP.views.upload, name='upload'),
+    path("searchMovie/", movieraterAPP.views.searchMovie, name='searchMovie')
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,14 +1,48 @@
 {% extends "base.html" %}
-{% block title %}Overview{% endblock %}
+{% block title %}Übersicht - MovieRater{% endblock %}
 
-{%block content%}
-<p>Das ist die Overview seite</p>
-<p>Hier sollen dann alle deine Movieratings angezeigt werden!</p>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <h2 class="text-center mb-4">Deine Filmbewertungen</h2>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Nach neuen Filmen suchen..." aria-label="Film suchen">
+            <button class="btn btn-primary" type="button" id="button-addon2">Suchen</button>
+        </div>
+        <div id="search-results" class="list-group mb-4" style="display: none;">
+            <!-- Hier werden später die API-Ergebnisse angezeigt -->
+        </div>
+    </div>
+</div>
 
-<ul>
+<div class="row">
     {% for movie in movies %}
-        <li>Movie: {{ movie }}     Rating: {{movie.rating}}</li>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if movie.picture %}
+            <img src="{{ movie.picture.url }}" class="card-img-top" alt="{{ movie.title }}" style="height: 200px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.title }}</h5>
+                <p class="card-text text-muted">{{ movie.genre }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-warning text-dark">Rating: {{ movie.rating }}/5</span>
+                    <small class="text-muted">{{ movie.release_date }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p class="lead">Noch keine Filme bewertet. Nutze die Suche oben, um Filme zu finden und zu bewerten!</p>
+    </div>
     {% endfor %}
-    <p>{{count}}</p>
-</ul>
+</div>
+
+{% if count > 0 %}
+<div class="text-center mt-4">
+    <p class="text-muted">Insgesamt {{ count }} Filme bewertet</p>
+</div>
+{% endif %}
+
 {% endblock %}

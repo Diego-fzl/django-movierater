@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
+import requests
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,6 +21,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-)2mdo3h4@knkk384fb5j3w4lnm=2pvg6o^$^8qihn+7qy(e3r$"
+
+import os
+from dotenv import load_dotenv
+
+#.env Datei laden
+load_dotenv()
+
+#Schlüssel abrufen
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+
+#explizit sagen wo die Medien liegen (Media Files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'movie_pictures'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

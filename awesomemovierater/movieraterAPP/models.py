@@ -6,7 +6,7 @@ class Movie(models.Model):
     release_date = models.DateField()
     actors = models.TextField()
     genre = models.CharField(max_length=100)
-    picture = models.ImageField(upload_to='movie_pictures/', blank=True, null=True)
+    picture = models.ImageField(upload_to='', blank=True, null=True)
     description = models.TextField()
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
