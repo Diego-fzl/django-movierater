@@ -14,12 +14,12 @@ class ImageForm(forms.ModelForm):
         exclude = ['id']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10}),
             'release_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'actors': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'genre': forms.TextInput(attrs={'class': 'form-control'}),
             'picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
         }
 
 
