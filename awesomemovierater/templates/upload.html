@@ -13,7 +13,7 @@
                 <div class="mb-4">
                     <label for="tmdb-search-input" class="form-label">Film in TMDB Datenbank suchen</label>
                     <div class="input-group">
-                        <input type="text" id="tmdb-search-input" class="form-control" placeholder="Titel eingeben...">
+                        <input type="text" id="tmdb-search-input" class="form-control" placeholder="Titel eingeben..." oninput="debouncedSearch()">
                         <button class="btn btn-outline-primary" type="button" onclick="searchMovie()">Suchen</button>
                     </div>
                     <div id="search-results" class="list-group mt-2" style="display: none; max-height: 250px; overflow-y: auto; position: absolute; z-index: 1000; width: 90%;">
@@ -58,10 +58,19 @@
 </div>
 
 <script>
+    let timeout = null;
+    // 300ms nach Eingabe warten wegen API Limits
+    function debouncedSearch() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            searchMovie();
+        }, 300);
+    }
+
 async function searchMovie() {
     const query = document.getElementById('tmdb-search-input').value;
     const resultsDiv = document.getElementById('search-results');
-
+    //ab 3 Zeichen suchen wegen API Limits
     if (query.length < 2) return;
 
     try {
