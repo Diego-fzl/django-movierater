@@ -17,7 +17,7 @@ class ImageForm(forms.ModelForm):
         exclude = ['id']
         widgets = {
             'tmdb_id': forms.HiddenInput(), #versteckt ID im HTML - USer soll es nicht sheen
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'rating': forms.NumberInput(attrs={
                 'class': 'form-range',
                 'type': 'range',
