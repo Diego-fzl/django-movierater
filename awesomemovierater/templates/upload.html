@@ -6,7 +6,7 @@
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Neuen Film bewerten</h4>
+                <h4>{% if is_edit %}Film bearbeiten{% else %}Neuen Film bewerten{% endif %}</h4>
             </div>
             <div class="card-body">
                 <!-- Suchbereich für TMDB -->
@@ -22,9 +22,13 @@
                 </div>
 
                 <!--  posterVorschau-->
-                <div id="poster-preview" class="mb-3 text-center" style="display: none;">
+                <div id="poster-preview" class="mb-3 text-center"
+                     style="{% if is_edit and form.instance.picture %}display: block;{% else %}display: none;{% endif %}">
+
                         <h6>Poster-Vorschau:</h6>
-                        <img id="preview-img" src="" alt="Poster" style="max-height: 200px; border-radius: 8px;">
+                        <img id="preview-img"
+                                 src="{% if is_edit and form.instance.picture %}{{ form.instance.picture.url }}{% endif %}"
+                             alt="Poster" style="max-height: 200px; border-radius: 8px;">
                     </div>
                 <hr>
 

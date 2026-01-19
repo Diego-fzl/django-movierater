@@ -1,5 +1,3 @@
-from gc import get_objects
-
 from django import forms
 import requests
 from django.contrib import messages
@@ -14,7 +12,7 @@ class ImageForm(forms.ModelForm):
 
     class Meta:
         model = Movie
-        exclude = ['id']
+        exclude = ['id', 'picture' ]
         widgets = {
             'tmdb_id': forms.HiddenInput(), #versteckt ID im HTML - USer soll es nicht sheen
             'title': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
@@ -40,35 +38,34 @@ def overview(request):
     return render(request, 'overview.html', dict(movies=all_movies, count=count))
 
 def upload(request, movie_id=None):
-    instance = get_object_or_404(Movie, id=movie_id) if movie_id else None
+    #Falls movie_id Übergeben, lade Objekt -> sonst None
+    if movie_id:
+        instance = get_object_or_404(Movie, id=movie_id)
+    else:
+        instance = None
 
     if request.method == 'POST':
+        # instance=instance damit Django weiß: Das ist ein Update, kein neuer Film
         form = ImageForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
-            tmbd_id = form.cleaned_data.get('tmdb_id')
-            if not movie_id and tmbd_id:
-                messages.error(request, "Diesen Film hast du bereits bewertet, bitte Lösche ihn zuerst!")
-            return render(request, 'upload.html', dict(form=form))
-
             movie = form.save(commit=False)
-            # Prüfen ob eine TMDB Poster URL mitgesendet wurde
             poster_url = request.POST.get('tmdb_poster_url')
-            if poster_url and not request.FILES.get('picture'):
+            # Nur herunterladen, wenn eine URL da ist UND (es ein neuer Film ist ODER die URL sich geändert hat)
+            if poster_url:
                 try:
                     response = requests.get(poster_url)
                     if response.status_code == 200:
-                        file_name = f"poster_{movie.title.replace(' ', '_')}.jpg"
-                        movie.picture.save(file_name, ContentFile(response.content),save=False)
+                        file_name = f"poster_{movie.tmdb_id}.jpg"
+                        movie.picture.save(file_name, ContentFile(response.content), save=False)
                 except Exception as e:
-                    print(f"Fehler beim Herunterladen der Poster-URL: {e}")
+                    print(f"Fehler beim Poster-Download: {e}")
 
             movie.save()
             return redirect('overview')
-        return redirect('overview')
-
     else:
         form = ImageForm(instance=instance)
-    return render(request, 'upload.html', dict(form=form))
+
+    return render(request, 'upload.html', {'form': form, 'is_edit': bool(movie_id)})
 
 def searchMovie(request):
     query = request.GET.get('query')

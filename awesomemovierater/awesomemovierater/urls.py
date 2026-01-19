@@ -26,6 +26,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("",movieraterAPP.views.overview, name='overview'),
     path("upload/",movieraterAPP.views.upload, name='upload'),
+    path("edit/<int:movie_id>/", movieraterAPP.views.upload, name='edit_movie'),
     path("searchMovie/", movieraterAPP.views.searchMovie, name='searchMovie')
 ]
 
