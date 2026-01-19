@@ -82,3 +82,9 @@ def searchMovie(request):
     except requests.RequestException:
         return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
 
+def delete_movie(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    if request.method == 'POST':
+        movie.delete()
+        messages.success(request, f"'{movie.title}' wurde gelöscht.")
+    return redirect('overview')

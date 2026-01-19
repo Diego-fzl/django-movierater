@@ -27,6 +27,7 @@ urlpatterns = [
     path("",movieraterAPP.views.overview, name='overview'),
     path("upload/",movieraterAPP.views.upload, name='upload'),
     path("edit/<int:movie_id>/", movieraterAPP.views.upload, name='edit_movie'),
+    path("delete/<int:movie_id>/", movieraterAPP.views.delete_movie, name='delete_movie'),
     path("searchMovie/", movieraterAPP.views.searchMovie, name='searchMovie')
 ]
 
