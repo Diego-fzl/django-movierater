@@ -1,8 +1,11 @@
+from gc import get_objects
+
 from django import forms
 import requests
+from django.contrib import messages
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 from awesomemovierater import settings
 from movieraterAPP.models import Movie
@@ -13,9 +16,16 @@ class ImageForm(forms.ModelForm):
         model = Movie
         exclude = ['id']
         widgets = {
+            'tmdb_id': forms.HiddenInput(), #versteckt ID im HTML - USer soll es nicht sheen
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10}),
-            'release_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'rating': forms.NumberInput(attrs={
+                'class': 'form-range',
+                'type': 'range',
+                'min': '1',
+                'max': '10',
+                'step': '1',
+                'oninput': 'updateRatingDisplay(this.value)'
+            }),            'release_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'actors': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'genre': forms.TextInput(attrs={'class': 'form-control'}),
             'picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
@@ -29,10 +39,17 @@ def overview(request):
     count = Movie.objects.count()
     return render(request, 'overview.html', dict(movies=all_movies, count=count))
 
-def upload(request):
+def upload(request, movie_id=None):
+    instance = get_object_or_404(Movie, id=movie_id) if movie_id else None
+
     if request.method == 'POST':
-        form = ImageForm(request.POST, request.FILES)
+        form = ImageForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
+            tmbd_id = form.cleaned_data.get('tmdb_id')
+            if not movie_id and tmbd_id:
+                messages.error(request, "Diesen Film hast du bereits bewertet, bitte Lösche ihn zuerst!")
+            return render(request, 'upload.html', dict(form=form))
+
             movie = form.save(commit=False)
             # Prüfen ob eine TMDB Poster URL mitgesendet wurde
             poster_url = request.POST.get('tmdb_poster_url')
@@ -50,7 +67,7 @@ def upload(request):
         return redirect('overview')
 
     else:
-        form = ImageForm()
+        form = ImageForm(instance=instance)
     return render(request, 'upload.html', dict(form=form))
 
 def searchMovie(request):

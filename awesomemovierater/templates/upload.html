@@ -37,7 +37,14 @@
                     {% for field in form %}
                     <div class="mb-3">
                         {{ field.label_tag }}
-                        {{ field }}
+                        {% if field.name == 'rating' %}
+                            <div class="d-flex align-items-center">
+                                {{ field }}
+                                <span class="ms-3 badge bg-primary fs-5" id="rating-value"></span>
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
                         {% if field.help_text %}
                         <div class="form-text">{{ field.help_text }}</div>
                         {% endif %}
@@ -68,6 +75,14 @@
     }
 
 async function searchMovie() {
+
+     const genreMap = {
+            28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+            80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+            14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+            9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
+            10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
+        };
     const query = document.getElementById('tmdb-search-input').value;
     const resultsDiv = document.getElementById('search-results');
     //ab 3 Zeichen suchen wegen API Limits
@@ -94,9 +109,21 @@ async function searchMovie() {
 
                     // Felder befüllen (Django nutzt id_fieldname als Standard)
                     if (document.getElementById('id_title')) document.getElementById('id_title').value = movie.title;
+                    if (document.getElementById('id_tmdb_id')) document.getElementById('id_tmdb_id').value = movie.id; //TMDB ID
                     if (document.getElementById('id_description')) document.getElementById('id_description').value = movie.overview;
-
                     if (document.getElementById('id_release_date')) document.getElementById('id_release_date').value = movie.release_date;
+                    // Logik für genres Mappen
+                    if (movie.genre_ids && movie.genre_ids.length > 0) {
+                            const genreNames = movie.genre_ids
+                                .map(id => genreMap[id]) // ID in Namen umwandeln
+                                .filter(name => name !== undefined) // Nur vorhandene Namen behalten
+                                .join(', '); // Mit Komma und Leerzeichen trennen
+
+                            if (document.getElementById('id_genre')) {
+                                document.getElementById('id_genre').value = genreNames;
+                            }
+                        }
+                    //Logik für Poster die wir nur per URL bekommen siehe API Doku
                     if (movie.poster_path) {
                         const fullImageUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
                         document.getElementById('tmdb_poster_url').value = fullImageUrl;
@@ -124,4 +151,21 @@ document.addEventListener('click', function(event) {
     }
 });
 </script>
+<script>
+    function updateRatingDisplay(val) {
+        const display = document.getElementById('rating-value');
+        if (display) {
+            display.innerText = val;
+        }
+    }
+
+    // Setze den initialen Wert beim Laden der Seite
+    document.addEventListener('DOMContentLoaded', () => {
+        const slider = document.querySelector('input[type="range"]');
+        if (slider) {
+            updateRatingDisplay(slider.value);
+        }
+    });
+    </script>
+
 {% endblock %}

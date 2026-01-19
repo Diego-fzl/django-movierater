@@ -3,11 +3,12 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Movie(models.Model):
     title = models.CharField(max_length=255)
+    tmdb_id = models.IntegerField(unique=True, null=True, blank=True) #Für duplikate check
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)])
     release_date = models.DateField()
     actors = models.TextField()
-    genre = models.CharField(max_length=100)
+    genre = models.CharField(max_length=100, blank=True)
     picture = models.ImageField(upload_to='', blank=True, null=True)
     description = models.TextField()
 
