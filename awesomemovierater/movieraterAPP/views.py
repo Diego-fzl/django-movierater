@@ -82,6 +82,24 @@ def searchMovie(request):
     except requests.RequestException:
         return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
 
+def get_movie_credits(request, tmdb_id):
+    api_key = settings.TMDB_API_KEY
+    url = f'https://api.themoviedb.org/3/movie/{tmdb_id}/credits?api_key={api_key}'
+    response = requests.get(url)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        #nur ersten 5 + formatieren
+        cast = data.get('cast', [])[:5]
+        formatted_actors = [f"{c['character']} :-> {c['name']}" for c in cast]
+
+        return JsonResponse({'actors':"\n".join(formatted_actors)})
+    except requests.RequestException:
+        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
+
+
 def delete_movie(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     if request.method == 'POST':

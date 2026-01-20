@@ -107,7 +107,7 @@ async function searchMovie() {
                 const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
                 item.innerText = `${movie.title} (${year})`;
 
-                item.onclick = () => {
+                item.onclick = async() => {
                     // alle Attribute von API anzeigen lassen
                     console.log("Ausgewählter Film:", movie);
 
@@ -136,6 +136,16 @@ async function searchMovie() {
                     }
                     resultsDiv.style.display = 'none';
                     document.getElementById('tmdb-search-input').value = movie.title;
+                     try {
+                            const creditsResponse = await fetch(`/movie-credits/${movie.id}/`);
+                            const creditsData = await creditsResponse.json();
+                            if (document.getElementById('id_actors')) {
+                                document.getElementById('id_actors').value = creditsData.actors;
+                            }
+                        } catch (error) {
+                            console.error('Fehler beim Laden der Credits:', error);
+                        }
+
                 };
                 resultsDiv.appendChild(item);
             });

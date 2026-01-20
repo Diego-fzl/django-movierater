@@ -28,7 +28,8 @@ urlpatterns = [
     path("upload/",movieraterAPP.views.upload, name='upload'),
     path("edit/<int:movie_id>/", movieraterAPP.views.upload, name='edit_movie'),
     path("delete/<int:movie_id>/", movieraterAPP.views.delete_movie, name='delete_movie'),
-    path("searchMovie/", movieraterAPP.views.searchMovie, name='searchMovie')
+    path("searchMovie/", movieraterAPP.views.searchMovie, name='searchMovie'),
+    path("movie-credits/<int:tmdb_id>/", movieraterAPP.views.get_movie_credits, name='movie_credits')
 ]
 
 if settings.DEBUG:
