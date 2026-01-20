@@ -11,6 +11,7 @@ class Movie(models.Model):
     genre = models.CharField(max_length=100, blank=True)
     picture = models.ImageField(upload_to='', blank=True, null=True)
     description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title       #everytime the object is converted to str show:

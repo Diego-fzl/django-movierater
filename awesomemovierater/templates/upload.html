@@ -9,18 +9,25 @@
                 <h4>{% if is_edit %}Film bearbeiten{% else %}Neuen Film bewerten{% endif %}</h4>
             </div>
             <div class="card-body">
+                {% if not is_edit %}
                 <!-- Suchbereich für TMDB -->
                 <div class="mb-4">
-                    <label for="tmdb-search-input" class="form-label">Film in TMDB Datenbank suchen</label>
-                    <div class="input-group">
-                        <input type="text" id="tmdb-search-input" class="form-control" placeholder="Titel eingeben..." oninput="debouncedSearch()">
-                        <button class="btn btn-outline-primary" type="button" onclick="searchMovie()">Suchen</button>
+                    <label for="tmdb-search-input" class="form-label ">Film in TMDB Datenbank suchen</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-primary text-white border-primary">
+                                🔍
+                            </span>
+                        <input type="text" id="tmdb-search-input" class="form-control border-primary" placeholder="Nach Film suchen ..." oninput="debouncedSearch()">
                     </div>
                     <div id="search-results" class="list-group mt-2" style="display: none; max-height: 250px; overflow-y: auto; position: absolute; z-index: 1000; width: 90%;">
                         <!-- Ergebnisse landen hier -->
                     </div>
                 </div>
-
+                {% else %}
+                 <div class="alert alert-info py-2">
+                        <i class="bi bi-info-circle"></i> Du bearbeitest gerade den Film: <strong>{{ form.instance.title }}</strong>
+                    </div>
+                {% endif %}
                 <!--  posterVorschau-->
                 <div id="poster-preview" class="mb-3 text-center"
                      style="{% if is_edit and form.instance.picture %}display: block;{% else %}display: none;{% endif %}">

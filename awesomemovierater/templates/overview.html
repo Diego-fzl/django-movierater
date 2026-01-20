@@ -50,10 +50,13 @@
                     <span class="badge bg-warning text-dark">Rating: {{ movie.rating }}/10</span>
                     <small class="text-muted">{{ movie.release_date }}</small>
                 </div>
+
                 <div class = "d-grid">
                     <a href="{% url 'edit_movie' movie.id %}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
-
                 </div>
+                <small class="text-muted italic" style="font-size: 0.75rem;">
+                    Bewertet am: {{ movie.created_at|date:"d.m.Y" }}
+                </small>
             </div>
         </div>
     </div>
