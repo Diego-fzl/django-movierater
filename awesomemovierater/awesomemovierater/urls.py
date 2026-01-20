@@ -29,7 +29,8 @@ urlpatterns = [
     path("edit/<int:movie_id>/", movieraterAPP.views.upload, name='edit_movie'),
     path("delete/<int:movie_id>/", movieraterAPP.views.delete_movie, name='delete_movie'),
     path("searchMovie/", movieraterAPP.views.searchMovie, name='searchMovie'),
-    path("movie-credits/<int:tmdb_id>/", movieraterAPP.views.get_movie_credits, name='movie_credits')
+    path("movie-credits/<int:tmdb_id>/", movieraterAPP.views.get_movie_credits, name='movie_credits'),
+    path('movie-details/<int:tmdb_id>/', movieraterAPP.views.get_movie_details, name='movie_details'),
 ]
 
 if settings.DEBUG:

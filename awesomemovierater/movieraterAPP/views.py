@@ -107,7 +107,6 @@ def searchMovie(request):
     if not query:
         return JsonResponse({'results': []})
 
-    api_key = settings.TMDB_API_KEY
     url = f'https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={query}' #&language=de-DE  maybe
 
     try:
@@ -118,7 +117,6 @@ def searchMovie(request):
         return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
 
 def get_movie_credits(request, tmdb_id):
-    api_key = settings.TMDB_API_KEY
     url = f'https://api.themoviedb.org/3/movie/{tmdb_id}/credits?api_key={api_key}'
     response = requests.get(url)
     try:
@@ -131,6 +129,14 @@ def get_movie_credits(request, tmdb_id):
 
         return JsonResponse({'actors':"\n".join(formatted_actors)})
     except requests.RequestException:
+        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
+
+def get_movie_details(request, tmdb_id):
+    url = f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={api_key}&language=de-DE"
+    try:
+        response = requests.get(url)
+        return JsonResponse(response.json())
+    except:
         return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
 
 

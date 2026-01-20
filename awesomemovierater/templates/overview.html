@@ -37,10 +37,12 @@
         <div class="row row-cols-2 row-cols-md-6 g-3">
             {% for rec in recommendations %}
             <div class="col text-center">
-                {% if rec.poster_path %}
-                <img src="https://image.tmdb.org/t/p/w200{{ rec.poster_path }}" class="img-fluid rounded shadow-sm mb-1" alt="{{ rec.title }}">
-                {% endif %}
-                <small class="d-block text-truncate fw-bold" style="font-size: 0.75rem;">{{ rec.title }}</small>
+                <a href="{% url 'upload' %}?tmdb_id={{ rec.id }}" class="text-decoration-none text-dark">
+                    {% if rec.poster_path %}
+                    <img src="https://image.tmdb.org/t/p/w200{{ rec.poster_path }}" class="img-fluid rounded shadow-sm mb-1 card-hover-effect" alt="{{ rec.title }}">
+                    {% endif %}
+                    <small class="d-block text-truncate fw-bold" style="font-size: 0.75rem;">{{ rec.title }}</small>
+                </a>
             </div>
             {% endfor %}
         </div>
@@ -101,10 +103,12 @@
         <div class="row row-cols-2 row-cols-md-6 g-3">
             {% for trend in trending_movies %}
             <div class="col text-center">
-                {% if trend.poster_path %}
-                <img src="https://image.tmdb.org/t/p/w200{{ trend.poster_path }}" class="img-fluid rounded shadow-sm mb-1" alt="{{ trend.title }}">
-                {% endif %}
-                <small class="d-block text-truncate fw-bold" style="font-size: 0.75rem;">{{ trend.title }}</small>
+                <a href="{% url 'upload' %}?tmdb_id={{ trend.id }}" class="text-decoration-none text-dark">
+                    {% if trend.poster_path %}
+                    <img src="https://image.tmdb.org/t/p/w200{{ trend.poster_path }}" class="img-fluid rounded shadow-sm mb-1 card-hover-effect" alt="{{ trend.title }}">
+                    {% endif %}
+                    <small class="d-block text-truncate fw-bold" style="font-size: 0.75rem;">{{ trend.title }}</small>
+                </a>
             </div>
             {% endfor %}
         </div>
