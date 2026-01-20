@@ -90,7 +90,6 @@ def get_movie_credits(request, tmdb_id):
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-
         #nur ersten 5 + formatieren
         cast = data.get('cast', [])[:5]
         formatted_actors = [f"{c['character']} :-> {c['name']}" for c in cast]
