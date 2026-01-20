@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from awesomemovierater import settings
 from movieraterAPP.models import Movie
 
+api_key = settings.TMDB_API_KEY
 class ImageForm(forms.ModelForm):
 
     class Meta:
@@ -33,9 +34,43 @@ class ImageForm(forms.ModelForm):
 
 # Create your views here.
 def overview(request):
-    all_movies = Movie.objects.all()
-    count = Movie.objects.count()
-    return render(request, 'overview.html', dict(movies=all_movies, count=count))
+    all_movies = Movie.objects.all().order_by('-created_at')
+    count = all_movies.count()
+
+    trending_movies = []
+    recommendations=[]
+    last_movie = None
+
+    #get Trending Movies
+    try:
+        trending_url = f'https://api.themoviedb.org/3/trending/movie/week?api_key={api_key}'
+        r = requests.get(trending_url)
+        if r.status_code == 200:
+            trending_movies = r.json().get('results', [])[:6]
+    except:
+        pass
+
+    #get recommendations (based on last movie added)
+    if count > 0:
+        last_movie = all_movies[0]
+        if last_movie.tmdb_id:
+            try:
+                rec_url = f"https://api.themoviedb.org/3/movie/{last_movie.tmdb_id}/recommendations?api_key={api_key}"
+                r = requests.get(rec_url)
+                if r. status_code == 200:
+                    recommendations = r.json().get('results', [])[:6]
+            except:
+                pass
+
+    content = {
+        'movies' : all_movies,
+        'count' : count,
+        'trending_movies' : trending_movies,
+        'recommendations' : recommendations,
+        'last_movie' : last_movie,
+        }
+
+    return render(request, 'overview.html', content)
 
 def upload(request, movie_id=None):
     #Falls movie_id Übergeben, lade Objekt -> sonst None
