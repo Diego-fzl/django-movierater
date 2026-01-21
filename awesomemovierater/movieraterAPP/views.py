@@ -1,7 +1,9 @@
 from django import forms
 import requests
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -52,6 +54,19 @@ class ImageForm(forms.ModelForm):
 
 
 # Create your views here.
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user) #user direkt einloggen
+            messages.success(request, f'Account erfolgreich erstellt! Du bist nun eingeloggt.')
+            return redirect('overview')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+
 
 @login_required
 def overview(request):

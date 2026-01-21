@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Login - MovieRater{% endblock %}
+{% block title %}Registrieren - MovieRater{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-5">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Login</h4>
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Registrierung</h4>
             </div>
             <div class="card-body p-4">
                 
@@ -27,17 +27,21 @@
                     </div>
                 {% endif %}
 
-                <form method="post">
+                <form method="post" novalidate>
                     {% csrf_token %}
                     
                     {% for field in form %}
                         <div class="mb-3">
                             <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                            
+                            {# Wir fügen die Bootstrap Klasse 'form-control' manuell hinzu, falls sie nicht im Widget ist #}
+                            {# Da es ein UserCreationForm ist, kommen die Felder meist ohne Klassen #}
                             <input type="{{ field.field.widget.input_type|default:'text' }}" 
                                    name="{{ field.html_name }}" 
                                    id="{{ field.id_for_label }}"
                                    class="form-control {% if field.errors %}is-invalid{% endif %}"
-                                   {% if field.value %}value="{{ field.value }}"{% endif %}>
+                                   {% if field.value %}value="{{ field.value }}"{% endif %}
+                                   {% if field.field.required %}required{% endif %}>
                             
                             {% if field.errors %}
                                 <div class="invalid-feedback">
@@ -46,14 +50,20 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+
+                            {% if field.help_text %}
+                                <div class="form-text mt-2 p-2 bg-light rounded border border-light-subtle" style="font-size: 0.85rem;">
+                                    {{ field.help_text|safe }}
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                     
-                    <button type="submit" class="btn btn-primary w-100 mt-3 py-2 fw-bold shadow-sm">Anmelden</button>
+                    <button type="submit" class="btn btn-success w-100 mt-3 py-2 fw-bold shadow-sm">Account erstellen</button>
                 </form>
 
                 <div class="mt-4 pt-3 border-top text-center">
-                    <p class="mb-0">Noch kein Konto? <a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold">Hier registrieren</a></p>
+                    <p class="mb-0">Schon ein Konto? <a href="{% url 'login' %}" class="text-success text-decoration-none fw-bold">Hier anmelden</a></p>
                 </div>
             </div>
         </div>
