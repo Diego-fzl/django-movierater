@@ -12,21 +12,20 @@
     .card:hover .delete-btn-overlay {
         opacity: 1;
     }
+    .card-hover-effect:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s;
+    }
 </style>
 
 <div class="row mb-4">
     <div class="col-md-8 offset-md-2">
         <h2 class="text-center mb-4">Deine Filmbewertungen</h2>
-
-        <div class="text-center mt-4">
+        <div class="text-center mt-2">
             <p class="text-muted">Insgesamt {{ count }} Filme bewertet</p>
-        </div>
-        <div id="search-results" class="list-group mb-4" style="display: none;">
-            <!-- API Ergebnisse landen hier -->
         </div>
     </div>
 </div>
-
 
 <!-- Empfehlung aufgrund des letzten hinzugefügten titel -->
  {% if recommendations %}
@@ -50,45 +49,50 @@
 {% endif %}
 
 <hr class="mb-5">
-<h3 class="mb-4">Deine Liste</h3>
+<h3 class="mb-4">Deine Filmbewertungen</h3>
 <div class="row">
-    {% for movie in movies %}
+    {% for rating in movies %}
     <div class="col-md-4 mb-4">
         <div class="card h-100 shadow-sm position-relative">
             <!-- Delete button top right corner -->
-             <form action="{% url 'delete_movie' movie.id %}" method="post"
+             <form action="{% url 'delete_movie' rating.id %}" method="post"
                    class="delete-btn-overlay"
-                      style="position: absolute; top: 10px; right: 10px; z-index: 10;"
-                      onsubmit="return confirm('Möchtest du diesen Film wirklich löschen?');">
+                   style="position: absolute; top: 10px; right: 10px; z-index: 10;"
+                   onsubmit="return confirm('Möchtest du diese Bewertung wirklich löschen?');">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-sm rounded-circle"
                             style="width: 30px; height: 30px; line-height: 1; padding: 0;">
                         &times;
                     </button>
              </form>
-            {% if movie.picture %}
-            <img src="{{ movie.picture.url }}" class="card-img-top" alt="{{ movie.title }}" style="height: 200px; object-fit: cover;">
+
+            <!-- Filmdaten zugreifen mit rating.movie-->
+            {% if rating.movie.picture %}
+            <img src="{{ rating.movie.picture.url }}" class="card-img-top" alt="{{ rating.movie.title }}" style="height: 200px; object-fit: cover;">
             {% endif %}
             <div class="card-body">
-                <h5 class="card-title">{{ movie.title }}</h5>
-                <p class="card-text text-muted">{{ movie.genre }}</p>
+                <h5 class="card-title">{{ rating.movie.title }}</h5>
+                <p class="card-text text-muted small">{{ rating.movie.genre }}</p>
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-warning text-dark">Rating: {{ movie.rating }}/10</span>
-                    <small class="text-muted">{{ movie.release_date }}</small>
+                    <span class="badge bg-warning text-dark">Rating: {{ rating.rating }}/10</span>
+                    <small class="text-muted">{{ rating.movie.release_date|date:"Y"}}</small>
                 </div>
 
-                <div class = "d-grid">
-                    <a href="{% url 'edit_movie' movie.id %}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
+                <div class = "d-grid gap-2">
+                    <!-- nun ratings bearbeiten mit rating.id -->
+                    <a href="{% url 'edit_movie' rating.id %}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
                 </div>
-                <small class="text-muted italic" style="font-size: 0.75rem;">
-                    Bewertet am: {{ movie.created_at|date:"d.m.Y" }}
-                </small>
+                <div>
+                    <small class="text-muted" style="font-size: 0.7rem;">
+                        Bewertet am: {{ rating.created_at|date:"d.m.Y" }}
+                    </small>
+                </div>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12 text-center py-5">
-        <p class="lead text-muted">Noch keinen Film bewertet.</p>
+        <p class="lead text-muted">Noch keine Filme bewertet.</p>
         <a href="{% url 'upload' %}" class="btn btn-primary">
             Klicken Sie hier, um einen Film zu bewerten
         </a>
@@ -98,7 +102,7 @@
 
 <!-- Trending Movies -->
 {% if trending_movies %}
-    <div class="mb-5">
+    <div class="mt-5 mb-5">
         <h5 class="text-muted mb-3 border-bottom pb-2">Top Movies aktuell:</h5>
         <div class="row row-cols-2 row-cols-md-6 g-3">
             {% for trend in trending_movies %}

@@ -25,46 +25,65 @@
                 </div>
                 {% else %}
                  <div class="alert alert-info py-2">
-                        <i class="bi bi-info-circle"></i> Du bearbeitest gerade den Film: <strong>{{ form.instance.title }}</strong>
+                        <i class="bi bi-info-circle"></i> Du bearbeitest gerade den Film: <strong>{{ movie_instance.title }}</strong>
                     </div>
                 {% endif %}
                 <!--  posterVorschau-->
                 <div id="poster-preview" class="mb-3 text-center"
-                     style="{% if is_edit and form.instance.picture %}display: block;{% else %}display: none;{% endif %}">
+                     style="{% if movie_instance and movie_instance.picture %}display: block;{% else %}display: none;{% endif %}">
 
                         <h6>Poster-Vorschau:</h6>
                         <img id="preview-img"
-                                 src="{% if is_edit and form.instance.picture %}{{ form.instance.picture.url }}{% endif %}"
+                                 src="{% if movie_instance and movie_instance.picture %}{{ movie_instance.picture.url }}{% endif %}"
                              alt="Poster" style="max-height: 200px; border-radius: 8px;">
                     </div>
                 <hr>
 
+                <!-- Absofort hier Filmdetails des Filmes -->
+                <div id="movie-details-info" class="mt-3" style="{% if movie_instance %}display: block;{% else %}display: none;{% endif %}">
+                        <div class="p-3 bg-light rounded border border-info-subtle">
+                            <h5 id="display-title" class="text-primary">{{ movie_instance.title }}</h5>
+                            <div class="mb-2">
+                                <span class="badge bg-secondary" id="display-year">{{ movie_instance.release_date|date:"Y" }}</span>
+                                <span class="badge bg-info text-dark" id="display-genre">{{ movie_instance.genre }}</span>
+                            </div>
+                            <p class="small mb-2 text-muted" id="display-description" style="line-height: 1.4;">{{ movie_instance.description }}</p>
+                            <hr class="my-2">
+                            <div class="small">
+                                <strong><br>Besetzung:</br>
+                                </strong>
+                                <span id="display-actors" class="text-muted italic">{{ movie_instance.actors }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+
+                    <!-- nun auch die anderen versteckten Felder mitschicken -->
+                      <input type="hidden" name="tmdb_id" id="id_tmdb_id" value="{% if movie_instance %}{{ movie_instance.tmdb_id }}{% endif %}">
+                        <input type="hidden" name="title" id="id_title" value="{% if movie_instance %}{{ movie_instance.title }}{% endif %}">
+                        <input type="hidden" name="release_date" id="id_release_date" value="{% if movie_instance %}{{ movie_instance.release_date|date:'Y-m-d' }}{% endif %}">
+                        <input type="hidden" name="genre" id="id_genre" value="{% if movie_instance %}{{ movie_instance.genre }}{% endif %}">
+                        <input type="hidden" name="description" id="id_description" value="{% if movie_instance %}{{ movie_instance.description }}{% endif %}">
+                        <input type="hidden" name="actors" id="id_actors" value="{% if movie_instance %}{{ movie_instance.actors }}{% endif %}">
 
                     <!-- Feld versteckt für externe bild URL-->
                     <input type="hidden" name="tmdb_poster_url" id="tmdb_poster_url">
 
-                    {% for field in form %}
-                    <div class="mb-3">
-                        {{ field.label_tag }}
-                        {% if field.name == 'rating' %}
+                        <div class="mb-4">
+                            <label for="{{form.rating.id_for_label}}" class="form-label fw-bold">Deine Bewertung:</label>
+
                             <div class="d-flex align-items-center">
-                                {{ field }}
+                                {{ form.rating }}
                                 <span class="ms-3 badge bg-primary fs-5" id="rating-value"></span>
                             </div>
-                        {% else %}
-                            {{ field }}
-                        {% endif %}
-                        {% if field.help_text %}
-                        <div class="form-text">{{ field.help_text }}</div>
-                        {% endif %}
-                        {% for error in field.errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
 
+                            {% if form.rating.errors %}
+                                <div class="text-danger small">{{ form.rating.errors }}</div>
+                            {% endif %}
+                        </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success">Speichern</button>
                         <a href="{% url 'overview' %}" class="btn btn-outline-secondary">Abbrechen</a>
@@ -97,6 +116,14 @@ async function fillForm(movie) {
 
     //console.log("Befülle Formular mit:", movie);
 
+         // NEU: Anzeige-Texte im Info-Bereich befüllen
+        if (document.getElementById('display-title')) document.getElementById('display-title').innerText = movie.title;
+        if (document.getElementById('display-year')) document.getElementById('display-year').innerText = movie.release_date?.split('-')[0] || 'N/A';
+        if (document.getElementById('display-description')) document.getElementById('display-description').innerText = movie.overview || movie.description;
+
+        document.getElementById('movie-details-info').style.display = 'block';
+
+
         // easy daten
         if (document.getElementById('id_title')) document.getElementById('id_title').value = movie.title;
         if (document.getElementById('id_tmdb_id')) document.getElementById('id_tmdb_id').value = movie.id;
@@ -105,12 +132,12 @@ async function fillForm(movie) {
 
         // Genres
 
-        // todo: evtl. Genres über Movie detail holen -> keine GenresID
-        //  aktuell: über 'search' aber 'genre_ids' + Mapping hardcoded
         let ids = movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []);
         if (ids.length > 0) {
             const names = ids.map(id => genreMap[id]).filter(n => n).join(', ');
             if (document.getElementById('id_genre')) document.getElementById('id_genre').value = names;
+            if (document.getElementById('display-genre')) document.getElementById('display-genre').innerText = names;
+
         }
 
         // Poster
@@ -126,6 +153,7 @@ async function fillForm(movie) {
             const res = await fetch(`/movie-credits/${movie.id}/`);
             const data = await res.json();
             if (document.getElementById('id_actors')) document.getElementById('id_actors').value = data.actors;
+            if (document.getElementById('display-actors')) document.getElementById('display-actors').innerText = data.actors;
         } catch (e) { console.error("Credits Fehler", e); }
 
         document.getElementById('tmdb-search-input').value = movie.title;

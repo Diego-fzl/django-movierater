@@ -7,9 +7,26 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from awesomemovierater import settings
-from movieraterAPP.models import Movie
+from movieraterAPP.models import Movie, Rating
 
 api_key = settings.TMDB_API_KEY
+
+class RatingForm(forms.ModelForm):
+    class Meta:
+        model = Rating
+        fields = ['rating']
+        widgets = {
+            'rating': forms.NumberInput(
+                attrs={
+                    'class': 'w-100',
+                    'type' : 'range',
+                    'min' : '1',
+                    'max' : '10',
+                    'step' :'1',
+                    'oninput' : 'updateRatingDisplay(this.value)'
+                    }),
+        }
+
 class ImageForm(forms.ModelForm):
 
     class Meta:
@@ -38,8 +55,9 @@ class ImageForm(forms.ModelForm):
 
 @login_required
 def overview(request):
-    all_movies = Movie.objects.filter(user=request.user).order_by('-created_at')
-    count = all_movies.count()
+
+    user_ratings = Rating.objects.filter(user=request.user).order_by('-created_at')
+    count = user_ratings.count()
 
     trending_movies = []
     recommendations=[]
@@ -47,7 +65,7 @@ def overview(request):
 
     #get Trending Movies
     try:
-        trending_url = f'https://api.themoviedb.org/3/trending/movie/week?api_key={api_key}'
+        trending_url = f'https://api.themoviedb.org/3/trending/movie/week?api_key={api_key}&language=de-DE'
         r = requests.get(trending_url)
         if r.status_code == 200:
             trending_movies = r.json().get('results', [])[:6]
@@ -56,71 +74,84 @@ def overview(request):
 
     #get recommendations (based on last movie added)
     if count > 0:
-        last_movie = all_movies[0]
-        if last_movie.tmdb_id:
-            try:
-                rec_url = f"https://api.themoviedb.org/3/movie/{last_movie.tmdb_id}/recommendations?api_key={api_key}"
-                r = requests.get(rec_url)
-                if r. status_code == 200:
-                    recommendations = r.json().get('results', [])[:6]
-            except:
-                pass
+        last_rating = user_ratings[0]
+        last_movie = last_rating.movie
+        try:
+            rec_url = f"https://api.themoviedb.org/3/movie/{last_movie.tmdb_id}/recommendations?api_key={api_key}&language=de-DE"
+            r = requests.get(rec_url)
+            if r. status_code == 200:
+                recommendations = r.json().get('results', [])[:6]
+        except:
+            pass
 
     content = {
-        'movies' : all_movies,
+        'movies' : user_ratings,
         'count' : count,
         'trending_movies' : trending_movies,
         'recommendations' : recommendations,
         'last_movie' : last_movie,
-        }
-
+    }
     return render(request, 'overview.html', content)
 
 @login_required
-def upload(request, movie_id=None):
-    #Falls movie_id Übergeben, lade Objekt -> sonst None
-    if movie_id:
-        instance = get_object_or_404(Movie, id=movie_id, user=request.user)
-    else:
-        instance = None
+def upload(request, rating_id=None):
+    #alles auf rating ändern nichtmehr Movie
+    instance = get_object_or_404(Rating, id=rating_id, user=request.user) if rating_id else None
 
     if request.method == 'POST':
-        # instance=instance damit Django weiß: Das ist ein Update, kein neuer Film
-        form = ImageForm(request.POST, request.FILES, instance=instance)
+        form = RatingForm(request.POST, instance=instance)
         if form.is_valid():
-            tmdb_id = form.cleaned_data.get('tmdb_id')
+            #aus hidden Inputs Filmdaten holen
+            tmdb_id = request.POST.get('tmdb_id')
 
-            #Hier neuer Duplikat check -> nichtmehr unique in datamodel
+            #Film aus Movie Tabelle holen oder Film erstellen
+            movie, created = Movie.objects.get_or_create(
+                tmdb_id=tmdb_id,
+                defaults={
+                    'title': request.POST.get('title'),
+                    'release_date': request.POST.get('release_date'),
+                    'description': request.POST.get('description'),
+                    'actors': request.POST.get('actors'),
+                    'genre': request.POST.get('genre'),
+                }
+            )
 
-            if not movie_id and tmdb_id:
-                if Movie.objects.filter(user=request.user, tmdb_id=tmdb_id).exists():
-                    messages.error(request, "Diesen Film hast du bereits bewertet!")
-                    return render(request, 'upload.html', {'form': form, 'is_edit': False})
-
-            movie = form.save(commit=False)
-            movie.user = request.user
-
+            #beim ersten mal Poster runterladen:
             poster_url = request.POST.get('tmdb_poster_url')
-            # Nur herunterladen, wenn eine URL da ist UND (es ein neuer Film ist ODER die URL sich geändert hat)
-            if poster_url:
+            if created and poster_url:
                 try:
                     response = requests.get(poster_url)
                     if response.status_code == 200:
                         file_name = f"poster_{movie.tmdb_id}.jpg"
-                        movie.picture.save(file_name, ContentFile(response.content), save=False)
-                except Exception as e:
-                    print(f"Fehler beim Poster-Download: {e}")
+                        movie.picture.save(file_name, ContentFile(response.content), save=True)
+                except:
+                    pass
 
-            movie.save()
+            #Rating speicher -> verknüpfen
+            rating = form.save(commit=False)
+            rating.user = request.user
+            rating.movie = movie
+
+            #Duplikaten Check (pro User film nur 1 mal bewerten)
+            if not rating_id and Rating.objects.filter(user=request.user, movie=movie).exists():
+                messages.error(request, "Du hast diesen Film bereits bewertet!")
+                return redirect('overview')
+
+            rating.save()
             return redirect('overview')
 
     else:
-        form = ImageForm(instance=instance)
+        form = RatingForm(instance=instance)
 
-    # WICHTIG: IDs für das rote Markieren in der Suche (nur vom aktuellen User)
-    existing_ids = list(Movie.objects.filter(user=request.user).values_list('tmdb_id', flat=True))
+    #ID's rot Markieren
+    existing_ids = list(Rating.objects.filter(user=request.user).values_list('movie__tmdb_id', flat=True))
 
-    return render(request, 'upload.html', {'form': form, 'is_edit': bool(movie_id), 'existing_ids': existing_ids})
+    return render(request, 'upload.html', {
+        'form': form,
+        'is_edit': bool(rating_id),
+        'existing_ids': existing_ids,
+        'movie_instance': instance.movie if instance else None,
+    })
 
 def searchMovie(request):
     query = request.GET.get('query')
@@ -160,9 +191,10 @@ def get_movie_details(request, tmdb_id):
         return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
 
 
-def delete_movie(request, movie_id):
-    movie = get_object_or_404(Movie, id=movie_id)
+def delete_movie(request, rating_id):
+    rating = get_object_or_404(Rating,id=rating_id, user=request.user)
     if request.method == 'POST':
-        movie.delete()
-        messages.success(request, f"'{movie.title}' wurde gelöscht.")
+        title = rating.movie.title
+        rating.delete()
+        messages.success(request, f"Bewertung für '{title}' gelöscht.")
     return redirect('overview')
