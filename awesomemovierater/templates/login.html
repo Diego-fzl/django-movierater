@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Login - MovieRater{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white"><h4>Login</h4></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100">Anmelden</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

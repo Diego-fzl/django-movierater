@@ -104,7 +104,8 @@ async function fillForm(movie) {
         if (document.getElementById('id_release_date')) document.getElementById('id_release_date').value = movie.release_date;
 
         // Genres
-        // todo: mit details liefer API genres zurück (kein mapping?)
+
+        // todo: evtl. Genres über Movie detail holen -> keine GenresID
         //  aktuell: über 'search' aber 'genre_ids' + Mapping hardcoded
         let ids = movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []);
         if (ids.length > 0) {

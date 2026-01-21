@@ -1,6 +1,7 @@
 from django import forms
 import requests
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -13,7 +14,7 @@ class ImageForm(forms.ModelForm):
 
     class Meta:
         model = Movie
-        exclude = ['id', 'picture' ]
+        exclude = ['id', 'picture', 'user' ]
         widgets = {
             'tmdb_id': forms.HiddenInput(), #versteckt ID im HTML - USer soll es nicht sheen
             'title': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
@@ -32,9 +33,12 @@ class ImageForm(forms.ModelForm):
         }
 
 
+
 # Create your views here.
+
+@login_required
 def overview(request):
-    all_movies = Movie.objects.all().order_by('-created_at')
+    all_movies = Movie.objects.filter(user=request.user).order_by('-created_at')
     count = all_movies.count()
 
     trending_movies = []
@@ -72,10 +76,11 @@ def overview(request):
 
     return render(request, 'overview.html', content)
 
+@login_required
 def upload(request, movie_id=None):
     #Falls movie_id Übergeben, lade Objekt -> sonst None
     if movie_id:
-        instance = get_object_or_404(Movie, id=movie_id)
+        instance = get_object_or_404(Movie, id=movie_id, user=request.user)
     else:
         instance = None
 
@@ -83,7 +88,18 @@ def upload(request, movie_id=None):
         # instance=instance damit Django weiß: Das ist ein Update, kein neuer Film
         form = ImageForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
+            tmdb_id = form.cleaned_data.get('tmdb_id')
+
+            #Hier neuer Duplikat check -> nichtmehr unique in datamodel
+
+            if not movie_id and tmdb_id:
+                if Movie.objects.filter(user=request.user, tmdb_id=tmdb_id).exists():
+                    messages.error(request, "Diesen Film hast du bereits bewertet!")
+                    return render(request, 'upload.html', {'form': form, 'is_edit': False})
+
             movie = form.save(commit=False)
+            movie.user = request.user
+
             poster_url = request.POST.get('tmdb_poster_url')
             # Nur herunterladen, wenn eine URL da ist UND (es ein neuer Film ist ODER die URL sich geändert hat)
             if poster_url:
@@ -97,10 +113,14 @@ def upload(request, movie_id=None):
 
             movie.save()
             return redirect('overview')
+
     else:
         form = ImageForm(instance=instance)
 
-    return render(request, 'upload.html', {'form': form, 'is_edit': bool(movie_id)})
+    # WICHTIG: IDs für das rote Markieren in der Suche (nur vom aktuellen User)
+    existing_ids = list(Movie.objects.filter(user=request.user).values_list('tmdb_id', flat=True))
+
+    return render(request, 'upload.html', {'form': form, 'is_edit': bool(movie_id), 'existing_ids': existing_ids})
 
 def searchMovie(request):
     query = request.GET.get('query')

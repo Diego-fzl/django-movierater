@@ -21,9 +21,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 import movieraterAPP.views
+from django.contrib.auth import views as auth_views
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("Login/", auth_views.LoginView.as_view(template_name="login.html"), name="login"),
+    path("Logout/", auth_views.LogoutView.as_view(template_name="login"), name="logout"),
     path("",movieraterAPP.views.overview, name='overview'),
     path("upload/",movieraterAPP.views.upload, name='upload'),
     path("edit/<int:movie_id>/", movieraterAPP.views.upload, name='edit_movie'),

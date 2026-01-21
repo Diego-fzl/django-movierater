@@ -20,12 +20,20 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'overview' %}">Übersicht</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'upload' %}">Film hinzufügen</a>
-                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item"><span class="nav-link text-light">Hallo, {{ user.username }}</span></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'overview' %}">Übersicht</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'upload' %}">Film hinzufügen</a></li>
+                    <li class="nav-item">
+                        <form action="{% url 'logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link btn btn-link">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+                 </li>
             </ul>
         </div>
     </div>
