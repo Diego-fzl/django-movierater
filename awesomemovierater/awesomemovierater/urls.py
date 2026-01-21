@@ -1,4 +1,3 @@
-import movieraterAPP.views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -20,15 +19,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-import movieraterAPP.views
 from django.contrib.auth import views as auth_views
+import movieraterAPP.views
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", movieraterAPP.views.register, name="register"),
-    path("Login/", auth_views.LoginView.as_view(template_name="login.html"), name="login"),
-    path("Logout/", auth_views.LogoutView.as_view(template_name="login"), name="logout"),
+    path("login/", auth_views.LoginView.as_view(template_name="login.html"), name="login"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("",movieraterAPP.views.overview, name='overview'),
     path("upload/",movieraterAPP.views.upload, name='upload'),
     path("edit/<int:rating_id>/", movieraterAPP.views.upload, name='edit_movie'),

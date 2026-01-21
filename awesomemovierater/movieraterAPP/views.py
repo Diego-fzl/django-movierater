@@ -29,27 +29,6 @@ class RatingForm(forms.ModelForm):
                     }),
         }
 
-class ImageForm(forms.ModelForm):
-
-    class Meta:
-        model = Movie
-        exclude = ['id', 'picture', 'user' ]
-        widgets = {
-            'tmdb_id': forms.HiddenInput(), #versteckt ID im HTML - USer soll es nicht sheen
-            'title': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'rating': forms.NumberInput(attrs={
-                'class': 'form-range',
-                'type': 'range',
-                'min': '1',
-                'max': '10',
-                'step': '1',
-                'oninput': 'updateRatingDisplay(this.value)'
-            }),            'release_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'actors': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'genre': forms.TextInput(attrs={'class': 'form-control'}),
-            'picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-        }
 
 
 
@@ -78,25 +57,25 @@ def overview(request):
     recommendations=[]
     last_movie = None
 
-    #get Trending Movies
+    # get Trending Movies
     try:
         trending_url = f'https://api.themoviedb.org/3/trending/movie/week?api_key={api_key}&language=de-DE'
-        r = requests.get(trending_url)
+        r = requests.get(trending_url, timeout=5)
         if r.status_code == 200:
             trending_movies = r.json().get('results', [])[:6]
-    except:
+    except requests.RequestException:
         pass
 
-    #get recommendations (based on last movie added)
+    # get recommendations (based on last movie added)
     if count > 0:
         last_rating = user_ratings[0]
         last_movie = last_rating.movie
         try:
             rec_url = f"https://api.themoviedb.org/3/movie/{last_movie.tmdb_id}/recommendations?api_key={api_key}&language=de-DE"
-            r = requests.get(rec_url)
-            if r. status_code == 200:
+            r = requests.get(rec_url, timeout=5)
+            if r.status_code == 200:
                 recommendations = r.json().get('results', [])[:6]
-        except:
+        except requests.RequestException:
             pass
 
     content = {
@@ -119,28 +98,28 @@ def upload(request, rating_id=None):
             #aus hidden Inputs Filmdaten holen
             tmdb_id = request.POST.get('tmdb_id')
 
-            #Film aus Movie Tabelle holen oder Film erstellen
+            # Film aus Movie Tabelle holen oder Film erstellen
             movie, created = Movie.objects.get_or_create(
                 tmdb_id=tmdb_id,
                 defaults={
                     'title': request.POST.get('title'),
-                    'release_date': request.POST.get('release_date'),
-                    'description': request.POST.get('description'),
-                    'actors': request.POST.get('actors'),
-                    'genre': request.POST.get('genre'),
+                    'release_date': request.POST.get('release_date') or '1900-01-01',
+                    'description': request.POST.get('description', ''),
+                    'actors': request.POST.get('actors', ''),
+                    'genre': request.POST.get('genre', ''),
                 }
             )
 
-            #beim ersten mal Poster runterladen:
+            # beim ersten mal Poster runterladen:
             poster_url = request.POST.get('tmdb_poster_url')
             if created and poster_url:
                 try:
-                    response = requests.get(poster_url)
+                    response = requests.get(poster_url, timeout=10)
                     if response.status_code == 200:
                         file_name = f"poster_{movie.tmdb_id}.jpg"
                         movie.picture.save(file_name, ContentFile(response.content), save=True)
-                except:
-                    pass
+                except requests.RequestException as e:
+                    messages.warning(request, f"Poster konnte nicht heruntergeladen werden: {e}")
 
             #Rating speicher -> verknüpfen
             rating = form.save(commit=False)
@@ -173,37 +152,37 @@ def searchMovie(request):
     if not query:
         return JsonResponse({'results': []})
 
-    url = f'https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={query}' #&language=de-DE  maybe
+    url = f'https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={query}&language=de-DE'
 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         return JsonResponse(response.json())
     except requests.RequestException:
-        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
+        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status=500)
 
 def get_movie_credits(request, tmdb_id):
     url = f'https://api.themoviedb.org/3/movie/{tmdb_id}/credits?api_key={api_key}'
-    response = requests.get(url)
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         data = response.json()
-        #nur ersten 5 + formatieren
+        # nur ersten 5 + formatieren
         cast = data.get('cast', [])[:5]
         formatted_actors = [f"{c['character']} :-> {c['name']}" for c in cast]
 
-        return JsonResponse({'actors':"\n".join(formatted_actors)})
+        return JsonResponse({'actors': "\n".join(formatted_actors)})
     except requests.RequestException:
-        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
+        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status=500)
 
 def get_movie_details(request, tmdb_id):
     url = f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={api_key}&language=de-DE"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
         return JsonResponse(response.json())
-    except:
-        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status = 500)
+    except requests.RequestException:
+        return JsonResponse({'error': 'Fehler bei der API Anfrage'}, status=500)
 
 
 def delete_movie(request, rating_id):
