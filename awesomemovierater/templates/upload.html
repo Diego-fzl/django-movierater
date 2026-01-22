@@ -3,7 +3,6 @@
 {% block title %}Film hinzufügen - MovieRater{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'movieraterAPP/css/movie_style.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -24,7 +23,7 @@
                             </span>
                         <input type="text" id="tmdb-search-input" class="form-control border-primary" placeholder="Nach Film suchen ..." oninput="debouncedSearch()" data-existing-ids="{{ existing_ids|safe }}">
                     </div>
-                    <div id="search-results" class="list-group mt-2" style="display: none; max-height: 250px; overflow-y: auto; position: absolute; z-index: 1000; width: 90%;">
+                    <div id="search-results" class="list-group mt-2 search-results-dropdown">
                         <!-- Ergebnisse landen hier -->
                     </div>
                 </div>
@@ -34,25 +33,25 @@
                     </div>
                 {% endif %}
                 <!--  posterVorschau-->
-                <div id="poster-preview" class="mb-3 text-center"
+                <div id="poster-preview" class="poster-preview-container"
                      style="{% if movie_instance and movie_instance.picture %}display: block;{% else %}display: none;{% endif %}">
 
                         <h6>Poster-Vorschau:</h6>
                         <img id="preview-img"
                                  src="{% if movie_instance and movie_instance.picture %}{{ movie_instance.picture.url }}{% endif %}"
-                             alt="Poster" style="max-height: 200px; border-radius: 8px;">
+                             alt="Poster" class="img-fluid rounded shadow-sm poster-preview-img">
                     </div>
                 <hr>
 
                 <!-- Absofort hier Filmdetails des Filmes -->
                 <div id="movie-details-info" class="mt-3" style="{% if movie_instance %}display: block;{% else %}display: none;{% endif %}">
-                        <div class="p-3 bg-light rounded border border-info-subtle">
+                        <div class="movie-info-box">
                             <h5 id="display-title" class="text-primary">{{ movie_instance.title }}</h5>
                             <div class="mb-2">
                                 <span class="badge bg-secondary" id="display-year">{{ movie_instance.release_date|date:"Y" }}</span>
                                 <span class="badge bg-info text-dark" id="display-genre">{{ movie_instance.genre }}</span>
                             </div>
-                            <p class="small mb-2 text-muted" id="display-description" style="line-height: 1.4;">{{ movie_instance.description }}</p>
+                            <p class="mb-2 text-muted movie-description-small" id="display-description">{{ movie_instance.description }}</p>
                             <hr class="my-2">
                             <div class="small">
                                 <strong>Besetzung:</strong><br>

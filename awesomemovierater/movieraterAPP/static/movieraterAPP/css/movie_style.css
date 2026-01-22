@@ -1,4 +1,110 @@
 /* MovieRaterAPP Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
 .italic {
     font-style: italic;
+}
+
+/* Hover-Effekte für Filmkarten */
+.card-hover-effect {
+    transition: transform 0.2s;
+}
+
+.card-hover-effect:hover {
+    transform: scale(1.05);
+}
+
+/* Delete-Button Overlay */
+.delete-btn-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.card:hover .delete-btn-overlay {
+    opacity: 1;
+}
+
+.btn-delete-circle {
+    width: 30px;
+    height: 30px;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Einheitliche Poster-Größen für die horizontalen Listen (Empfehlungen & Trending) */
+.poster-img-fixed {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    background-color: #e9ecef; /* Fallback Hintergrund */
+}
+
+/* Anpassung für die Karten in der Übersicht */
+.card-img-fixed {
+    height: 300px;
+    object-fit: cover;
+}
+
+/* Suchergebnisse Dropdown */
+.search-results-dropdown {
+    display: none;
+    max-height: 250px;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 1000;
+    width: 90%;
+}
+
+/* Poster Vorschau im Upload-Formular */
+.poster-preview-container {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.poster-preview-img {
+    max-height: 250px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+}
+
+/* Info-Box Styling */
+.movie-info-box {
+    padding: 1rem;
+    background-color: #f8f9fa; /* bg-light */
+    border-radius: 0.375rem; /* rounded */
+    border: 1px solid #cfe2ff; /* border-info-subtle */
+}
+
+.movie-description-small {
+    font-size: 0.875rem; /* small */
+    line-height: 1.4;
+}
+
+.tiny-text {
+    font-size: 0.75rem;
+}
+
+.extra-tiny-text {
+    font-size: 0.7rem;
+}
+
+.form-help-box {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    border: 1px solid #f1f1f1;
 }

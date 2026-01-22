@@ -3,21 +3,6 @@
 
 {% block content %}
 
-<style>
-    /* bisschen motion styling für delete button */
-    .delete-btn-overlay {
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-    }
-    .card:hover .delete-btn-overlay {
-        opacity: 1;
-    }
-    .card-hover-effect:hover {
-        transform: scale(1.05);
-        transition: transform 0.2s;
-    }
-</style>
-
 <div class="row mb-4">
     <div class="col-md-8 offset-md-2">
         <h2 class="text-center mb-4">Deine Filmbewertungen</h2>
@@ -38,9 +23,13 @@
             <div class="col text-center">
                 <a href="{% url 'upload' %}?tmdb_id={{ rec.id }}" class="text-decoration-none text-dark">
                     {% if rec.poster_path %}
-                    <img src="https://image.tmdb.org/t/p/w200{{ rec.poster_path }}" class="img-fluid rounded shadow-sm mb-1 card-hover-effect" alt="{{ rec.title }}">
+                    <img src="https://image.tmdb.org/t/p/w200{{ rec.poster_path }}" class="img-fluid rounded shadow-sm mb-1 card-hover-effect poster-img-fixed" alt="{{ rec.title }}">
+                    {% else %}
+                    <div class="rounded shadow-sm mb-1 card-hover-effect poster-img-fixed d-flex align-items-center justify-content-center bg-light border">
+                        <span class="text-muted tiny-text">Kein Bild</span>
+                    </div>
                     {% endif %}
-                    <small class="d-block text-truncate fw-bold" style="font-size: 0.75rem;">{{ rec.title }}</small>
+                    <small class="d-block text-truncate fw-bold tiny-text">{{ rec.title }}</small>
                 </a>
             </div>
             {% endfor %}
@@ -57,18 +46,20 @@
             <!-- Delete button top right corner -->
              <form action="{% url 'delete_movie' rating.id %}" method="post"
                    class="delete-btn-overlay"
-                   style="position: absolute; top: 10px; right: 10px; z-index: 10;"
                    onsubmit="return confirm('Möchtest du diese Bewertung wirklich löschen?');">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm rounded-circle"
-                            style="width: 30px; height: 30px; line-height: 1; padding: 0;">
+                    <button type="submit" class="btn btn-danger btn-sm rounded-circle btn-delete-circle">
                         &times;
                     </button>
              </form>
 
             <!-- Filmdaten zugreifen mit rating.movie-->
             {% if rating.movie.picture %}
-            <img src="{{ rating.movie.picture.url }}" class="card-img-top" alt="{{ rating.movie.title }}" style="height: 200px; object-fit: cover;">
+            <img src="{{ rating.movie.picture.url }}" class="card-img-top card-img-fixed" alt="{{ rating.movie.title }}">
+            {% else %}
+            <div class="card-img-top card-img-fixed d-flex align-items-center justify-content-center bg-light border-bottom">
+                 <span class="text-muted">Kein Poster</span>
+            </div>
             {% endif %}
             <div class="card-body">
                 <h5 class="card-title">{{ rating.movie.title }}</h5>
@@ -83,7 +74,7 @@
                     <a href="{% url 'edit_movie' rating.id %}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
                 </div>
                 <div>
-                    <small class="text-muted" style="font-size: 0.7rem;">
+                    <small class="text-muted extra-tiny-text">
                         Bewertet am: {{ rating.created_at|date:"d.m.Y" }}
                     </small>
                 </div>
@@ -109,9 +100,13 @@
             <div class="col text-center">
                 <a href="{% url 'upload' %}?tmdb_id={{ trend.id }}" class="text-decoration-none text-dark">
                     {% if trend.poster_path %}
-                    <img src="https://image.tmdb.org/t/p/w200{{ trend.poster_path }}" class="img-fluid rounded shadow-sm mb-1 card-hover-effect" alt="{{ trend.title }}">
+                    <img src="https://image.tmdb.org/t/p/w200{{ trend.poster_path }}" class="img-fluid rounded shadow-sm mb-1 card-hover-effect poster-img-fixed" alt="{{ trend.title }}">
+                    {% else %}
+                    <div class="rounded shadow-sm mb-1 card-hover-effect poster-img-fixed d-flex align-items-center justify-content-center bg-light border">
+                        <span class="text-muted tiny-text">Kein Bild</span>
+                    </div>
                     {% endif %}
-                    <small class="d-block text-truncate fw-bold" style="font-size: 0.75rem;">{{ trend.title }}</small>
+                    <small class="d-block text-truncate fw-bold tiny-text">{{ trend.title }}</small>
                 </a>
             </div>
             {% endfor %}
